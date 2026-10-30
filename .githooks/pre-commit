@@ -1,0 +1,19 @@
+#!/bin/sh
+# Refuse commits that contain private key material or malformed persona files.
+if command -v dfm >/dev/null 2>&1; then
+  exec dfm guard --staged
+fi
+# Fallback without the binary: a conservative text check.
+status=0
+for f in $(git diff --cached --name-only --diff-filter=ACMR); do
+  if git show ":$f" | grep -qE "PRIVATE KEY""-----|AGE-SECRET""-KEY-"; then
+    echo "guard: $f contains private key material" >&2; status=1
+  fi
+  case "$f" in
+    personas/*/bundle.age)
+      git show ":$f" | head -c 21 | grep -q 'age-encryption.org/v1' || { echo "guard: $f is not age ciphertext" >&2; status=1; } ;;
+    personas/*/*) case "$(basename "$f")" in bundle.age|github.pub|admin.pub|persona.env) ;; *) echo "guard: $f is not an allowed persona file" >&2; status=1 ;; esac ;;
+    notes-local/*) echo "guard: $f is under notes-local" >&2; status=1 ;;
+  esac
+done
+exit $status

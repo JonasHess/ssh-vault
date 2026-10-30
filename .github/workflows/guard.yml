@@ -1,0 +1,25 @@
+name: guard
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 4 * * 1"
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: install dfm
+        run: |
+          curl -fsSL https://github.com/JonasHess/dotfile-manager/releases/latest/download/dfm-linux-amd64 -o dfm
+          curl -fsSL https://github.com/JonasHess/dotfile-manager/releases/latest/download/SHA256SUMS -o SHA256SUMS
+          grep " dfm-linux-amd64$" SHA256SUMS | sha256sum -c -
+          chmod +x dfm
+      - name: guard tracked files
+        run: ./dfm guard
+      - name: gitleaks over history
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

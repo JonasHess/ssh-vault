@@ -1,0 +1,14 @@
+# dfm vault configuration. Nothing in this file is secret.
+
+[vault]
+owner = "JonasHess"
+
+[dotfiles]
+repo = "git@github.com:JonasHess/dotfiles.git"
+target = "~/repos/dotfiles"
+install = "stow -Sv -d ~/repos/dotfiles -t ~ ."
+
+[legacy]
+# What "Clean up old keys" looks for on machines set up before dfm.
+authorized_keys_comments = []
+private_keys = []
